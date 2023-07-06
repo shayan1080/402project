@@ -1,105 +1,231 @@
 import sys,os
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
-from PyQt5.QtCore import Qt
-import sqlite3
-from PIL import Image
 
-con=sqlite3.connect("products.db")
+from PyQt5.QtCore import Qt,QEvent,pyqtSignal  
+import sqlite3
+import addproduct,addmember,style
+from PIL import Image
+import threading
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+import time
+import webbrowser
+from PyQt5 import QtGui
+
+import sqlite3 , os
+
+
+
+con=sqlite3.connect("dynamicproduct.db")
 cur=con.cursor()
 
-defaultImg="store.png"
 
-class AddProduct(QWidget):
+class SearchByLink(QWidget):
+    def __init__(self):
+
+        super().__init__()
+        self.setWindowTitle("Product Details")
+        self.setWindowIcon(QIcon('icons/icon.ico'))
+        self.setGeometry(455,150,900,600)
+        self.setFixedSize(self.size())
+        self.UI()
+        self.show()
+    
+    def UI(self):
+
+        self.wigdet()
+        self.layouts()
+        self.displayProducts()
+    
+
+    def wigdet(self):
+        self.productsTable = QTableWidget(self)
+        self.productsTable.setColumnCount(3)
+        # self.productsTable.setColumnHidden(0,True)
+    
+        self.productsTable.setHorizontalHeaderItem(0,QTableWidgetItem("Product Name"))
+        
+        self.productsTable.setHorizontalHeaderItem(1,QTableWidgetItem("Digikala"))
+        self.productsTable.setHorizontalHeaderItem(2,QTableWidgetItem("Divar"))
+
+
+
+        self.productsTable.horizontalHeader().setSectionResizeMode(0,QHeaderView.Stretch)
+        # self.productsTable.horizontalHeader().setSectionResizeMode(2,QHeaderView.Stretch)
+        self.productsTable.doubleClicked.connect(self.selectedProduct)
+    
+    def layouts(self):
+
+        self.mainLayout=QHBoxLayout(self)
+        
+        self.mainLayout.addWidget(self.productsTable)
+        self.mainLayout = QVBoxLayout(self)
+
+    def displayProducts(self):
+
+        self.productsTable.setFont(QFont("Times", 12))
+
+
+        for i in reversed(range(self.productsTable.rowCount())):
+            self.productsTable.removeRow(i)
+
+        query = cur.execute("SELECT product_name,price1,price2 FROM products")
+        for row_data in query:
+            row_number = self.productsTable.rowCount()
+            self.productsTable.insertRow(row_number)
+            for column_number, data in enumerate(row_data):
+                self.productsTable.setItem(row_number, column_number, QTableWidgetItem(str(data)))
+
+        self.productsTable.setEditTriggers(QAbstractItemView.NoEditTriggers)
+
+
+
+        
+
+    def selectedProduct(self):
+        global productId
+        global product_name
+        
+        listProduct=[]
+        for i in range(0,3):
+            listProduct.append(self.productsTable.item(self.productsTable.currentRow(),i).text())
+
+        productId=listProduct[1]
+        product_name = listProduct[0]
+
+        self.a = DisplayProduct()
+        self.a.show()
+
+class DisplayProduct(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Add Product")
+        self.setWindowTitle("Product Details")
         self.setWindowIcon(QIcon('icons/icon.ico'))
-        self.setGeometry(450,150,350,550)
+        self.setGeometry(450,150,400,600)
         self.setFixedSize(self.size())
         self.UI()
         self.show()
 
     def UI(self):
-        self.widgets()
-        self.layouts()
+      self.productDetails()
+      self.widgets()
+      self.layouts()
 
+
+    def productDetails(self):
+        global productId
+        query=("SELECT product_name,price1,price2,color,description FROM products WHERE product_name=?")
+        product=cur.execute(query,(product_name,)).fetchone()#single item tuple=(1,)
+        self.productName=product[0]
+        self.productprice1=product[1]
+        self.productPrice2=product[2]
+        self.productcolor=product[3]
+        self.productoption=product[4]
+        query=("SELECT image FROM products WHERE product_name=?")
+        product=cur.execute(query,(product_name,)).fetchone()#single item tuple=(1,) 
+        image_data = product[0]
+        with open('image.jpg', 'wb') as file:
+            file.write(image_data)
 
     def widgets(self):
-        ###################widgets of top layout##########
-        self.addProductImg=QLabel()
-        self.img=QPixmap('icons/addproduct.png')
-        self.addProductImg.setPixmap(self.img)
-        self.titleText=QLabel("Add Product")
-        #################widgets of bottom layot###########
-        self.nameEntry=QLineEdit()
-        self.nameEntry.setPlaceholderText("Enter name of product")
-        self.manufacturerEntry=QLineEdit()
-        self.manufacturerEntry.setPlaceholderText("Enter name of manufacturer")
-        self.priceEntry=QLineEdit()
-        self.priceEntry.setPlaceholderText("Enter price of product")
-        self.qoutaEntry=QLineEdit()
-        self.qoutaEntry.setPlaceholderText("Enter qouta of product")
-        self.uploadBtn=QPushButton("Upload")
-        self.uploadBtn.clicked.connect(self.uploadImg)
-        self.submitBtn=QPushButton("Submit")
-        self.submitBtn.clicked.connect(self.addProduct)
+        #################Top layouts wigdets#########
+        self.product_Img=QLabel()
+        self.img=QPixmap('image.jpg')
+
+        self.product_Img.setPixmap(self.img)
+        self.product_Img.setAlignment(Qt.AlignCenter)
+
+        self.nameEntry=QTextEdit()
+        self.nameEntry.setReadOnly(True)
+        self.nameEntry.setFixedHeight(30)
+        self.nameEntry.setText(self.productName)
+ 
+
+        self.manufacturerEntry=QTextEdit()
+        self.manufacturerEntry.setFixedHeight(20)
+        self.manufacturerEntry.setReadOnly(True)
+        self.manufacturerEntry.setText(self.productprice1)
+        self.priceEntry=QTextEdit()
+        self.priceEntry.setReadOnly(True)
+        self.priceEntry.setFixedHeight(20)
+        self.priceEntry.setText(str(self.productPrice2))
+        self.qoutaEntry=QTextEdit()
+        self.qoutaEntry.setFixedHeight(30)
+        self.qoutaEntry.setReadOnly(True)
+        self.qoutaEntry.setText(str(self.productcolor))
+        self.option=QTextEdit()
+        self.qoutaEntry.setReadOnly(True)
+        self.option.setText(str(self.productoption))
 
 
     def layouts(self):
         self.mainLayout=QVBoxLayout()
-        self.topLayout=QHBoxLayout()
+        self.topLayout=QVBoxLayout()
         self.bottomLayout=QFormLayout()
         self.topFrame=QFrame()
+        # self.topFrame.setStyleSheet(style.productTopFrame())
         self.bottomFrame=QFrame()
-        ##################add widgets###################
-        ###########widgets of toplayout##############
-        self.topLayout.addWidget(self.addProductImg)
-        self.topLayout.addWidget(self.titleText)
+        self.bottomFrame.setStyleSheet(style.productBottomFrame())
+        ###############add widgets###########
+        self.topLayout.addWidget(self.product_Img)
         self.topFrame.setLayout(self.topLayout)
-        ###############Widgets of form layout##########
         self.bottomLayout.addRow(QLabel("Name: "),self.nameEntry)
-        self.bottomLayout.addRow(QLabel("Manufacturer: "),self.manufacturerEntry)
-        self.bottomLayout.addRow(QLabel("Price: "),self.priceEntry)
-        self.bottomLayout.addRow(QLabel("Qouta: "),self.qoutaEntry)
-        self.bottomLayout.addRow(QLabel("Upload: "),self.uploadBtn)
-        self.bottomLayout.addRow(QLabel(""),self.submitBtn)
-        self.bottomFrame.setLayout(self.bottomLayout)
+        self.bottomLayout.addRow(QLabel("Digikal: "),self.manufacturerEntry)
+        self.bottomLayout.addRow(QLabel("Divar: "),self.priceEntry)
+        self.bottomLayout.addRow(QLabel("colors: "),self.qoutaEntry)
+        self.bottomLayout.addRow(QLabel("option: "),self.option)
 
+        self.bottomFrame.setLayout(self.bottomLayout)
         self.mainLayout.addWidget(self.topFrame)
         self.mainLayout.addWidget(self.bottomFrame)
+
+
         self.setLayout(self.mainLayout)
 
+
+
     def uploadImg(self):
-        global defaultImg
-        size=(256,256)
-        self.filename,ok = QFileDialog.getOpenFileName(self,"Upload Image","","Image Files (*.jpg *.png)")
+        size =(256,256)
+        self.filename,ok =QFileDialog.getOpenFileName(self,'Upload Image','','Image files (*.jpg *.png)')
         if ok:
-            print(self.filename)
-            defaultImg = os.path.basename(self.filename)
-            print(defaultImg)
+            self.productImg = os.path.basename(self.filename)
             img=Image.open(self.filename)
             img=img.resize(size)
-            img.save("img/{0}".format(defaultImg))
+            img.save("img/{0}".format(self.productImg))
 
-
-    def addProduct(self):
-        global defaultImg
-        name =self.nameEntry.text()
+    def updateProduct(self):
+        global productId
+        name = self.nameEntry.text()
         manufacturer=self.manufacturerEntry.text()
-        price=self.priceEntry.text()
-        qouta =self.qoutaEntry.text()
+        price=int(self.priceEntry.text())
+        qouta=int(self.qoutaEntry.text())
+        status=self.availabilityCombo.currentText()
+        defaultImg=self.productImg
 
         if (name and manufacturer and price and qouta !=""):
+
             try:
-                query="INSERT INTO 'products' (product_name,product_manufacturer,product_price,product_qouta,product_img) VALUES(?,?,?,?,?)"
-                cur.execute(query,(name,manufacturer,price,qouta,defaultImg))
+                query="UPDATE products set product_name=?, product_manufacturer =?, product_price=?,product_qouta=?, product_img=?, product_availability=? WHERE product_id=?"
+                cur.execute(query,(name,manufacturer,price,qouta,defaultImg,status,productId))
                 con.commit()
-                QMessageBox.information(self,"Info","Product has been added")
+                QMessageBox.information(self,"Info","Product has been updated!")
+            except:
+                QMessageBox.information(self, "Info", "Product has not been updated!")
+        else:
+            QMessageBox.information(self, "Info", "Fields cant be empty!")
+
+    def deleteProduct(self):
+        global productId
+
+        mbox=QMessageBox.question(self,"Warning","Are you sure to delete this product",QMessageBox.Yes | QMessageBox.No,QMessageBox.No)
+
+        if(mbox==QMessageBox.Yes):
+            try:
+                cur.execute("DELETE FROM products WHERE product_id=?",(productId,))
+                con.commit()
+                QMessageBox.information(self,"Information","Product has been deleted!")
+                self.close()
 
             except:
-                QMessageBox.information(self, "Info", "Product has not been added")
-
-        else:
-            QMessageBox.information(self, "Info", "Fields cant be empty!!!")
-
+                QMessageBox.information(self, "Information", "Product has not been deleted!")
