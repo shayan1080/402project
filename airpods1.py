@@ -146,8 +146,8 @@ Divar_element = driver.find_element(By.XPATH,"/html/body/div[1]/div[2]/main/div/
 Divar = Divar_element.text
 
 
-c.execute(f'''INSERT INTO Airpod VALUES ('{name}' , 'Airpod' , '{Type}' , '{acostic}' , '{connection}' , '{airpodtype}' , '{noisecancelling}' , '{blutooth}' , '{color}','{persian_to_english(Digikala)}' , '{persian_to_english(Divar)}' ,'{Technolife}')''')
-conn.commit()
+# c.execute(f'''INSERT INTO Airpod VALUES ('{name}' , 'Airpod' , '{Type}' , '{acostic}' , '{connection}' , '{airpodtype}' , '{noisecancelling}' , '{blutooth}' , '{color}','{persian_to_english(Digikala)}' , '{persian_to_english(Divar)}' ,'{Technolife}')''')
+# conn.commit()
 
 """   Buds 2 PRO """
 # Navigate to the website
