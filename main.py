@@ -1,10 +1,9 @@
-import sys,os
+import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import Qt,QEvent
 import sqlite3
 import addproduct,addmember,style
-import webbrowser
 import dynamicsearch
 import options
 
@@ -41,7 +40,7 @@ class Main(QMainWindow):
         self.tb=self.addToolBar("Tool Bar")
         self.tb.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
         #####################Toolbar Buttons############
-        ####################Add Product################
+        ####################showing of search results################
         self.addProduct=QAction(QIcon('icons/add.png'),"Search for a link results",self)
         self.tb.addAction(self.addProduct)
         self.addProduct.triggered.connect(self.funcAddProduct)
@@ -84,13 +83,14 @@ class Main(QMainWindow):
         self.searchEntry.setPlaceholderText("Search For Products")
         self.searchButton=QPushButton("Search")
         self.searchButton.clicked.connect(self.searchProducts)
-
+        ################make suggestion part##################
         self.suggestionText = QLabel("Suggestions:")
         self.suggestionEntry = QLineEdit()
         self.suggestionEntry.setPlaceholderText("Enter a price1-price2-category(e.g:4000000-5000000-mobile)")
         self.suggestionButton = QPushButton("Suggest")
         self.suggestionButton.clicked.connect(self.suggest)
         self.suggestionButton.setStyleSheet(style.suggestionBtnStyle())
+        #################make search by link part#############
         self.search = QLabel("Search Online:")
         self.searchOnlineEntry = QLineEdit()
         self.searchOnlineEntry.setPlaceholderText("give a link")
@@ -99,6 +99,7 @@ class Main(QMainWindow):
         self.searchOnlineBtn.setStyleSheet(style.suggestionBtnStyle())
         self.searchButton.setStyleSheet(style.searchButtonStyle())
         ##########################Right middle layout widgets###########
+        ###############make category of products###################
         self.allProducts=QRadioButton("All Products")
         self.Laptop=QRadioButton("Laptop")
         self.Clock=QRadioButton("Clock")
@@ -109,6 +110,7 @@ class Main(QMainWindow):
         self.listButton.clicked.connect(self.listProducts)
         self.listButton.setStyleSheet(style.listButtonStyle())
         ########################Tab2 Widgets#########################
+        #################make the tab of showing members##########
         self.membersTable=QTableWidget()
         self.membersTable.setColumnCount(1)
         self.membersTable.setHorizontalHeaderItem(0,QTableWidgetItem("Member user_id"))
@@ -116,15 +118,10 @@ class Main(QMainWindow):
         self.updatebtn.clicked.connect(self.displayMembers)
         self.membersTable.horizontalHeader().setSectionResizeMode(0,QHeaderView.Stretch)
         self.membersTable.doubleClicked.connect(self.selectedMember)
-        ##########################Tab3 widgets#####################
-        self.totalProductsLabel=QLabel()
-        self.totalMemberLabel=QLabel()
-        self.soldProductsLabel=QLabel()
-        self.totalAmountLabel=QLabel()
-
 
     def layouts(self):
         ######################Tab1 layouts##############
+        ############ make two parts for main window to showing products table and search,category,suggestion part #################
         self.mainLayout=QHBoxLayout()
         self.mainLeftLayout=QVBoxLayout()
         self.mainRightLayout=QVBoxLayout()
@@ -143,6 +140,7 @@ class Main(QMainWindow):
         #################Add widgets###################
         ################Left main layout widget###########
         self.mainLeftLayout.addWidget(self.productsTable)
+        ##################Right main leyout###############
         self.rightDownLayout.addWidget(self.suggestionText)
         self.rightDownLayout.addWidget(self.suggestionEntry)
         self.rightDownLayout.addWidget(self.suggestionButton)
@@ -157,12 +155,11 @@ class Main(QMainWindow):
         self.mainRightLayout.addWidget(self.searchOnline,20)
         self.downGroupbox.setStyleSheet(style.searchOnlineBoxStyle())
         
-        ########################Right top layout widgets#########
         self.rightTopLayout.addWidget(self.searchText)
         self.rightTopLayout.addWidget(self.searchEntry)
         self.rightTopLayout.addWidget(self.searchButton)
         self.topGroupBox.setLayout(self.rightTopLayout)
-        #################Right middle layout widgets##########
+        ##############Category of products###################
         self.rightMiddleLayout.addWidget(self.allProducts)
         self.rightMiddleLayout.addWidget(self.Laptop)
         self.rightMiddleLayout.addWidget(self.Tablet)
@@ -200,6 +197,7 @@ class Main(QMainWindow):
         dynamicsearch.search(x)
 
     def suggest(self):
+        ################extract price information of products from db to find that the considered price#############
         lis = []
         x = self.suggestionEntry.text()
         x = x.split('-')
@@ -332,11 +330,12 @@ class Main(QMainWindow):
         self.newMember=addmember.AddMember()
 
     def displayProducts(self):
-
+        ##############extract data from db and save in the products table##########
         self.productsTable.setFont(QFont("Times", 12))
         for i in reversed(range(self.productsTable.rowCount())):
             self.productsTable.removeRow(i)
 
+        ############mobile##################
         query = cur.execute("SELECT product_name,product_manufacturer,price1,price2,price3 FROM mobile")
         for row_data in query:
             row_number = self.productsTable.rowCount()
@@ -347,7 +346,7 @@ class Main(QMainWindow):
         self.productsTable.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
 
-
+        #############Tablet###################
         query = cur.execute("SELECT product_name,product_manufacturer,price1,price2,price3 FROM Tablet")
         for row_data in query:
             row_number = self.productsTable.rowCount()
@@ -357,6 +356,7 @@ class Main(QMainWindow):
 
         self.productsTable.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
+        ##########Airpod################
         query = cur.execute("SELECT product_name,product_manufacturer,price1,price2,price3 FROM Airpod")
         for row_data in query:
             row_number = self.productsTable.rowCount()
@@ -366,6 +366,8 @@ class Main(QMainWindow):
 
         self.productsTable.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
+
+        #########Clock#############
         query = cur.execute("SELECT product_name,product_manufacturer,price1,price2,price3 FROM Clock")
         for row_data in query:
             row_number = self.productsTable.rowCount()
@@ -375,6 +377,7 @@ class Main(QMainWindow):
 
         self.productsTable.setEditTriggers(QAbstractItemView.NoEditTriggers)
     
+        ########Laptop###################
         query = cur.execute("SELECT product_name,product_manufacturer,price1,price2,price3 FROM Laptop")
         for row_data in query:
             row_number = self.productsTable.rowCount()
@@ -389,6 +392,7 @@ class Main(QMainWindow):
         for i in reversed(range(self.membersTable.rowCount())):
             self.membersTable.removeRow(i)
 
+        ##############Extract data of members from member table in db###########
         members=cur.execute("SELECT * FROM member")
         
         for row_data in members:
@@ -399,36 +403,40 @@ class Main(QMainWindow):
 
         self.membersTable.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
+    ############make this list to show multiple windows of products information###########
     display_window = []
     def selectedProduct(self):
         global productId
         global product_name
         global user_name
         listProduct=[]
+        ###############Extract data from products table###########
         for i in range(0,4):
             listProduct.append(self.productsTable.item(self.productsTable.currentRow(),i).text())
 
+        ###########using productId and product_name in showing of product's information##########3
         productId=listProduct[1]
         product_name = listProduct[0]
         try:
             display = options.DisplayProduct(product_name,productId,user_name,'1')
             Main.display_window.append(display)  # Add the instance to the list
             display.show()
-        except ValueError as err:
-            print(err)
+        except:
             QMessageBox.information(self, "Info", "log in to your panel first")
 
+    ###########Rasing of entering password window################
     def eventFilter(self, obj, event):
         if event.type() == QEvent.MouseButtonDblClick and obj == self.widget:
             self.widget.handle_input()
         return super().eventFilter(obj, event)
 
+    ################send password of member entry for authenticating##########
     def selectedMember(self):        
         self.widget = CustomWidget(self.handle_password)
         self.widget.show()
 
+    #########quantify of user_name to showing in the main window############
     def handle_password(self, password):
-
         self.id = 0
         b= cur.execute(f"SELECT user_name FROM member WHERE password = '{password}'")
         b = list(b)
@@ -452,8 +460,6 @@ class Main(QMainWindow):
     def updateNameLabel(self):
         global user_name
         user_name = self.name
-        
-        # self.name = self.user_name
         self.lbl1.setText(self.name)
         self.lbl1.move(1065,20)
 
@@ -484,7 +490,7 @@ class Main(QMainWindow):
             results.extend(results5)
             results.extend(results4)
 
-
+            ############show the results in the products table 
             for i in reversed(range(self.productsTable.rowCount())):
                 self.productsTable.removeRow(i)
             for row_data in results:
@@ -493,7 +499,7 @@ class Main(QMainWindow):
                 for column_number, data in enumerate(row_data):
                     self.productsTable.setItem(row_number,column_number,QTableWidgetItem(str(data))) 
 
-
+    ##############Sort the products by their category##############
     def listProducts(self):
         if self.allProducts.isChecked() == True:
             self.displayProducts()
@@ -613,7 +619,7 @@ class Favorite(QWidget):
     def wigdet(self):
         self.productsTable = QTableWidget(self)
         self.productsTable.setColumnCount(5)
-
+        #########make coloumns of Favorite window######
         self.productsTable.setHorizontalHeaderItem(0,QTableWidgetItem("Product Name"))
         self.productsTable.setHorizontalHeaderItem(1,QTableWidgetItem("Manufacturer"))
         self.productsTable.setHorizontalHeaderItem(2,QTableWidgetItem("Digikala"))
@@ -627,13 +633,12 @@ class Favorite(QWidget):
     def layouts(self):
 
         self.mainLayout=QHBoxLayout(self)
-        
         self.mainLayout.addWidget(self.productsTable)
 
     def displayProducts(self):
 
         self.productsTable.setFont(QFont("Times", 12))
-
+        ##########show the products information in the product table#########
         try:
             query = cur.execute('SELECT favorite FROM member WHERE user_name=?',(user_name,)).fetchone()
             lis = query[0].split(',')
@@ -702,7 +707,7 @@ class Favorite(QWidget):
 
         productId=listProduct[1]
         product_name = listProduct[0]
-
+        ##########Send the data for options module to show products information###############
         self.display = options.DisplayProduct(product_name,productId,user_name,'2')
 
         self.display.show()

@@ -1,8 +1,7 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
-from PyQt5.QtCore import Qt,QEvent
 import sqlite3
-import addproduct,addmember,style
+import style
 import webbrowser
 
 con=sqlite3.connect("costumer.db")
@@ -39,6 +38,8 @@ class DisplayProduct(QWidget):
         self.UI()
         self.show()
 
+
+    ##########Connect to webbrowser########
     def Digikala(self):
         if self.productName == 'SAMSUNG GALAXY S22 ULTRA 5G':
             webbrowser.open('https://www.digikala.com/product/dkp-10261550/%DA%AF%D9%88%D8%B4%DB%8C-%D9%85%D9%88%D8%A8%D8%A7%DB%8C%D9%84-%D8%B3%D8%A7%D9%85%D8%B3%D9%88%D9%86%DA%AF-%D9%85%D8%AF%D9%84-galaxy-s22-ultra-5g-%D8%AF%D9%88-%D8%B3%DB%8C%D9%85-%DA%A9%D8%A7%D8%B1%D8%AA-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-256-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA-%D9%88-%D8%B1%D9%85-12-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA-%D9%86%D8%B3%D8%AE%D9%87-%D8%A7%D8%B3%D9%86%D9%BE%D8%AF%D8%B1%D8%A7%DA%AF%D9%88%D9%86-%D9%88%DB%8C%D8%AA%D9%86%D8%A7%D9%85/')  # Go to example.com
@@ -196,7 +197,7 @@ class DisplayProduct(QWidget):
         if self.productName == 'ASUS ROG STRIX G15 G513RC':
             webbrowser.open("https://www.technolife.ir/product-7794/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-15.6-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-rog-strix-g15-g513rc-hn101-")
 
-
+    ##########make QTextEdit and show data #############3
     def UI(self):
         self.productDetails()
         if self.productManufacturer == 'Mobile':
@@ -851,7 +852,7 @@ class DisplayProduct(QWidget):
             tex13.setText(self.price3) 
 
     def productDetails(self):
-        
+        ##############Get data of products from db###################
         if self.productId == 'Mobile':
             query=("SELECT * FROM mobile WHERE product_name=?")
             product=cur.execute(query,(self.product_name,)).fetchone()#single item tuple=(1,)
@@ -984,7 +985,7 @@ class DisplayProduct(QWidget):
 
     def favoriteProduct(self):
         global favoriteProductsName
-        
+        ###############Add to favorite product with checking it in db and save it in favorite coloumn of selected user_name########
         favoriteProductsName = self.productName
         query = cur.execute('SELECT product_manufacturer FROM mobile WHERE product_name = ?',(favoriteProductsName,)).fetchone()
  

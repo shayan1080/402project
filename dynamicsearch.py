@@ -55,7 +55,6 @@ def search(link):
 
 
     driver = webdriver.Chrome()
-    # link = "https://www.digikala.com/product/dkp-3035899/%D8%A7%D8%AC%D8%A7%D9%82-%DA%AF%D8%A7%D8%B2-%D8%B5%D9%81%D8%AD%D9%87-%D8%A7%DB%8C-%D8%AF%D9%86%D9%BE%D8%A7%D8%B3%D8%B1-%D9%85%D8%AF%D9%84-bt1/"
 
     driver.get(link)
     time.sleep(3)
@@ -196,17 +195,11 @@ def search(link):
 
     image_element.screenshot('image.jpg')           
 
-            
-
-
-
+   
     driver.get("https://divar.ir/s/tehran")
     time.sleep(3)
 
     search_box = driver.find_element(By.CSS_SELECTOR,"#app > header > nav > div > div.nav-bar__search-container > div > div > div.kt-nav-text-field__field > form > input")
-
-    # Enter text into the search box
-
 
 
     try:
@@ -289,13 +282,7 @@ def search(link):
     #driver.get(f"{third_site_link}")
 
 
-
-
-
-
     Digikala_link = link
-
-
 
     with open('image.jpg', 'rb') as file:
         image_data = file.read()

@@ -1,20 +1,11 @@
-import sys,os
+import os
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
-
-from PyQt5.QtCore import Qt,QEvent,pyqtSignal  
+from PyQt5.QtCore import Qt
 import sqlite3
-import addproduct,addmember,style
-from PIL import Image
-import threading
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-import time
+import style
 import webbrowser
-from PyQt5 import QtGui
-
-import sqlite3 , os
-
+import sqlite3
 
 
 con=sqlite3.connect("dynamicproduct.db")
@@ -23,7 +14,7 @@ cur=con.cursor()
 
 class SearchByLink(QWidget):
     def __init__(self):
-
+        ##########make main window######
         super().__init__()
         self.setWindowTitle("Product Details")
         self.setWindowIcon(QIcon('icons/icon.ico'))
@@ -40,24 +31,20 @@ class SearchByLink(QWidget):
     
 
     def wigdet(self):
+        ##########make coloumns of main window###########
         self.productsTable = QTableWidget(self)
         self.productsTable.setColumnCount(4)
-        # self.productsTable.setColumnHidden(0,True)
-    
+
         self.productsTable.setHorizontalHeaderItem(0,QTableWidgetItem("Product Name"))
-        
         self.productsTable.setHorizontalHeaderItem(1,QTableWidgetItem("Digikala"))
         self.productsTable.setHorizontalHeaderItem(2,QTableWidgetItem("Divar"))
-        self.productsTable.setHorizontalHeaderItem(2,QTableWidgetItem("Third website"))
-
-
+        self.productsTable.setHorizontalHeaderItem(3,QTableWidgetItem("Third website"))
 
         self.productsTable.horizontalHeader().setSectionResizeMode(0,QHeaderView.Stretch)
-        # self.productsTable.horizontalHeader().setSectionResizeMode(2,QHeaderView.Stretch)
         self.productsTable.doubleClicked.connect(self.selectedProduct)
     
     def layouts(self):
-
+        #############add products table to main window#####
         self.mainLayout=QHBoxLayout(self)
         
         self.mainLayout.addWidget(self.productsTable)
@@ -66,12 +53,11 @@ class SearchByLink(QWidget):
     def displayProducts(self):
 
         self.productsTable.setFont(QFont("Times", 12))
-
-
         for i in reversed(range(self.productsTable.rowCount())):
             self.productsTable.removeRow(i)
 
-        query = cur.execute("SELECT product_name,price1,price2 FROM products")
+        ############add the products of dynamic search to products table ########
+        query = cur.execute("SELECT product_name,price1,price2,price3 FROM products")
         for row_data in query:
             row_number = self.productsTable.rowCount()
             self.productsTable.insertRow(row_number)
@@ -80,14 +66,12 @@ class SearchByLink(QWidget):
 
         self.productsTable.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
-
-
         
-
     def selectedProduct(self):
         global productId
         global product_name
         
+        ##########get value of products from products table(Not db) for using in double click show options###########
         listProduct=[]
         for i in range(0,3):
             listProduct.append(self.productsTable.item(self.productsTable.currentRow(),i).text())
@@ -116,6 +100,7 @@ class DisplayProduct(QWidget):
 
     def productDetails(self):
         global productId
+        ##########get products value from db##########
         query=("SELECT product_name,price1,price2,price3,color,description,Divar,Digikala,Third_website FROM products WHERE product_name=?")
         product=cur.execute(query,(product_name,)).fetchone()#single item tuple=(1,)
 
@@ -131,6 +116,7 @@ class DisplayProduct(QWidget):
         query=("SELECT image FROM products WHERE product_name=?")
         product=cur.execute(query,(product_name,)).fetchone()#single item tuple=(1,) 
         image_data = product[0]
+        #########get image of product from db###########
         with open('image.jpg', 'wb') as file:
             file.write(image_data)
 
@@ -143,12 +129,12 @@ class DisplayProduct(QWidget):
         self.product_Img.setPixmap(self.img)
         self.product_Img.setAlignment(Qt.AlignCenter)
 
+        #############make QtextEdit for showing the extracted informatin from db#########
         self.nameEntry=QTextEdit()
         self.nameEntry.setReadOnly(True)
         self.nameEntry.setFixedHeight(30)
         self.nameEntry.setText(self.productName)
  
-
         self.manufacturerEntry=QTextEdit()
         self.manufacturerEntry.setFixedHeight(20)
         self.manufacturerEntry.setReadOnly(True)
@@ -171,7 +157,7 @@ class DisplayProduct(QWidget):
         self.qoutaEntry.setReadOnly(True)
         self.option.setText(str(self.productoption))
 
-
+        ########make Qpush buttom for showing the website of product #########
         self.btn = QPushButton('Divar')
         self.btn.clicked.connect(self.Divar)
         self.btn2 = QPushButton('Digikala')
@@ -179,6 +165,7 @@ class DisplayProduct(QWidget):
         self.btn3 = QPushButton('Third Website')
         self.btn3.clicked.connect(self.thirdWebsite)
 
+    ###### these three wbsite show the website of product with webbrowser
     def Divar(self):
         webbrowser.open(self.divarLink)
 
@@ -189,16 +176,15 @@ class DisplayProduct(QWidget):
         webbrowser.open(self.thirdWebsiteLink)
 
     def layouts(self):
+        #########make section of top , main , buttom ###########
         self.mainLayout=QVBoxLayout()
         self.topLayout=QVBoxLayout()
         self.bottomLayout=QFormLayout()
         self.topFrame=QFrame()
-        # self.topFrame.setStyleSheet(style.productTopFrame())
         self.bottomFrame=QFrame()
         self.bottomFrame.setStyleSheet(style.productBottomFrame())
         ###############add widgets###########
-
-
+        ########### make the label of products############
         self.topLayout.addWidget(self.product_Img)
         self.topFrame.setLayout(self.topLayout)
         self.bottomLayout.addRow(QLabel("Name: "),self.nameEntry)
@@ -211,57 +197,9 @@ class DisplayProduct(QWidget):
         self.bottomFrame.setLayout(self.bottomLayout)
         self.mainLayout.addWidget(self.topFrame)
         self.mainLayout.addWidget(self.bottomFrame)
-
+        ########make the buttons of three website###########
         self.bottomLayout.addRow(QLabel(""),self.btn)
         self.bottomLayout.addRow(QLabel(""),self.btn2)
         self.bottomLayout.addRow(QLabel(""),self.btn3)
 
-
         self.setLayout(self.mainLayout)
-
-
-
-    def uploadImg(self):
-        size =(256,256)
-        self.filename,ok =QFileDialog.getOpenFileName(self,'Upload Image','','Image files (*.jpg *.png)')
-        if ok:
-            self.productImg = os.path.basename(self.filename)
-            img=Image.open(self.filename)
-            img=img.resize(size)
-            img.save("img/{0}".format(self.productImg))
-
-    def updateProduct(self):
-        global productId
-        name = self.nameEntry.text()
-        manufacturer=self.manufacturerEntry.text()
-        price=int(self.priceEntry.text())
-        qouta=int(self.qoutaEntry.text())
-        status=self.availabilityCombo.currentText()
-        defaultImg=self.productImg
-
-        if (name and manufacturer and price and qouta !=""):
-
-            try:
-                query="UPDATE products set product_name=?, product_manufacturer =?, product_price=?,product_qouta=?, product_img=?, product_availability=? WHERE product_id=?"
-                cur.execute(query,(name,manufacturer,price,qouta,defaultImg,status,productId))
-                con.commit()
-                QMessageBox.information(self,"Info","Product has been updated!")
-            except:
-                QMessageBox.information(self, "Info", "Product has not been updated!")
-        else:
-            QMessageBox.information(self, "Info", "Fields cant be empty!")
-
-    def deleteProduct(self):
-        global productId
-
-        mbox=QMessageBox.question(self,"Warning","Are you sure to delete this product",QMessageBox.Yes | QMessageBox.No,QMessageBox.No)
-
-        if(mbox==QMessageBox.Yes):
-            try:
-                cur.execute("DELETE FROM products WHERE product_id=?",(productId,))
-                con.commit()
-                QMessageBox.information(self,"Information","Product has been deleted!")
-                self.close()
-
-            except:
-                QMessageBox.information(self, "Information", "Product has not been deleted!")

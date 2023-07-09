@@ -1,15 +1,10 @@
-import sys,os
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import Qt
 import sqlite3
-from PIL import Image
-
 
 con=sqlite3.connect("costumer.db")
 cur=con.cursor()
-
-
 
 defaultImg="store.png"
 
@@ -73,11 +68,17 @@ class AddMember(QWidget):
 
         user_name = self.userName.text()
         password = self.password.text()
-
+        print('user_name',user_name)
 
         if (user_name and password !=""):
+            ##############Check if the user_name or user_id exists or not#######3
+            query ="SELECT password FROM member WHERE user_name=?"
+            q = cur.execute(query,(user_name,)).fetchone()
+            
+            que ="SELECT password FROM member WHERE user_id=?"
+            res = cur.execute(que,(self.user_id.text(),)).fetchone()
 
-            try:
+            if q== None and res== None:
                 query ="INSERT INTO 'member' (user_id,user_name,password) VALUES(?,?,?)"
                 cur.execute(query,(self.user_id.text(),user_name,password))
                 con.commit()
@@ -85,10 +86,11 @@ class AddMember(QWidget):
                 self.userName.setText("")
                 self.password.setText("")
                 self.user_id.setText("")
-            
-            except:
-            
-                QMessageBox.information(self, "Info", "Member has not been added!")
+            else:
+                self.userName.setText("")
+                self.password.setText("")
+                self.user_id.setText("")
+                QMessageBox.information(self,"Info"," user_name or user_id already exists")
 
         else:
             QMessageBox.information(self, "Info", "Fields can not be empty!")
